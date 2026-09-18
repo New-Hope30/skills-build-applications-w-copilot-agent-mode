@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react'
-import { formatDate, getCollection } from '../api.js'
+import { collectionFromResponse, formatDate } from '../api.js'
 import { EmptyState, ErrorState, ResourcePage } from './ResourcePage.jsx'
+
+const codespaceName = import.meta.env.VITE_CODESPACE_NAME?.trim()
+const activitiesApiUrl = codespaceName
+  ? `https://${codespaceName}-8000.app.github.dev/api/activities/`
+  : 'http://localhost:8000/api/activities/'
 
 function Activities() {
   const [activities, setActivities] = useState([])
   const [error, setError] = useState('')
 
   useEffect(() => {
-    getCollection('activities').then(setActivities).catch((reason) => setError(reason.message))
+    fetch(activitiesApiUrl)
+      .then((response) => { if (!response.ok) throw new Error('Could not load activities.'); return response.json() })
+      .then((payload) => setActivities(collectionFromResponse(payload)))
+      .catch((reason) => setError(reason.message))
   }, [])
 
   return (
